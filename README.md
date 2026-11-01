@@ -69,13 +69,13 @@ Test-set results (80/20 split, `random_state=42`), sorted by RMSE. The target is
 
 ## What I learned
 
-- **Tracking beats spreadsheets.** In the original lab I got one run per command and had to remember which alpha produced which score. Logging every configuration as a run with its params, metrics and plots let me sort, filter and compare 12 runs in the MLflow UI instead of copying numbers by hand.
-- **Nested runs keep a sweep organized.** Putting all configurations under one `model-comparison` parent run kept the experiment page clean, and the parent run is a natural place to store the leaderboard and the best result.
-- **The backend store matters.** The original lab skipped the Model Registry because the default file store doesn't support it. Switching to a SQLite backend (`sqlite:///mlflow.db`) made registering models and setting aliases work locally.
-- **Aliases decouple training from serving.** `predict.py` loads `models:/CaliforniaHousingRegressor@champion` rather than a specific run ID or version number. If a better model is trained later, I only need to move the alias, and the inference code doesn't change.
-- **Cross-validation is a sanity check on the test score.** Logging CV RMSE next to test RMSE showed that the ranking of models wasn't an accident of one train/test split.
-- **Model choice matters more than tuning here.** Changing the regularization strength of Ridge did almost nothing, while switching from linear models to gradient-boosted trees cut RMSE by about 40%, because house prices depend non-linearly on location and income.
-- **MLflow 3 serializes scikit-learn models with skops** and refuses to save tree-based models unless their internal types are explicitly marked as trusted. I set `skops_trusted_types` for the tree classes, which is safe because I trained the models myself.
+- Logging each model as its own run made comparing them much easier. I could sort the 12 runs by RMSE in the UI instead of writing scores down.
+- Nested runs keep the experiment page tidy. All the sweep runs sit under one parent run.
+- The Model Registry doesn't work with the default file store. I had to use SQLite (`sqlite:///mlflow.db`) to register models locally.
+- `predict.py` loads the model by its `champion` alias, not a run ID. If I train a better model, I just move the alias.
+- I logged CV RMSE next to test RMSE to check the results weren't just luck from one split. They matched closely.
+- Tuning Ridge's alpha barely changed anything. Switching to gradient boosting cut RMSE by about 40%.
+- MLflow 3 won't save tree models unless you mark their internal types as trusted (`skops_trusted_types`).
 
 ## Screenshots
 
