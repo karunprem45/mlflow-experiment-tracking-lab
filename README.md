@@ -1,5 +1,7 @@
 # MLflow Experiment Tracking Lab: California Housing
 
+[![train](https://github.com/karunprem45/mlflow-experiment-tracking-lab/actions/workflows/train.yml/badge.svg)](https://github.com/karunprem45/mlflow-experiment-tracking-lab/actions/workflows/train.yml)
+
 My version of [Mlflow_Labs/Lab1](https://github.com/raminmohammadi/MLOps/tree/main/Labs/Experiment_Tracking_Labs/Mlflow_Labs/Lab1) from the MLOps course repo.
 
 The original trains one ElasticNet model on Wine Quality. I switched to California Housing, compared 5 model types, and used the Model Registry to save and load the best one.
@@ -15,16 +17,21 @@ The original trains one ElasticNet model on Wine Quality. I switched to Californ
 | Artifacts | Model | Model, prediction/residual plots, feature importance, leaderboard |
 | Backend | File store | SQLite, so the Model Registry works |
 | Registry | Not used | Best model registered with a `champion` alias |
-| Inference | `serving.py` | `predict.py` loads the `champion` model |
+| Inference | `serving.py` | `predict.py` loads the `champion` model, plus a REST API with `mlflow models serve` |
+| Packaging | None | `MLproject` file, so it runs with `mlflow run .` |
+| CI | None | GitHub Actions trains and predicts on every push |
 
 ## Files
 
+- `lab.ipynb`: the whole lab as a notebook, with outputs
 - `train.py`: trains and logs all models, registers the best one
 - `predict.py`: loads the `champion` model and predicts on the test set
+- `MLproject`: entry points for `mlflow run`
+- `.github/workflows/train.yml`: CI that runs training and prediction on 10% of the data
 
 ## How to run
 
-Tested on Python 3.14 and MLflow 3.17 (macOS).
+Tested on Python 3.14 and MLflow 3.17 (macOS). CI runs on Python 3.12 (Ubuntu).
 
 ```bash
 python3 -m venv .venv
@@ -38,11 +45,38 @@ mlflow ui --backend-store-uri sqlite:///mlflow.db   # http://127.0.0.1:5000
 
 Use `python train.py --sample-frac 0.2` for a faster run on 20% of the data.
 
-If the dataset download fails with `CERTIFICATE_VERIFY_FAILED` on macOS, run this first:
+Or run it as an MLflow project:
 
 ```bash
-export SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())")
+mlflow run . --env-manager local --experiment-name california-housing-regression -P sample_frac=0.2
+mlflow run . -e predict --env-manager local --experiment-name california-housing-regression
 ```
+
+## Serve the model
+
+```bash
+mlflow models serve -m "models:/CaliforniaHousingRegressor@champion" -p 5001 --env-manager local
+```
+
+In another terminal:
+
+```bash
+curl localhost:5001/invocations -H "Content-Type: application/json" -d '{
+  "dataframe_split": {
+    "columns": ["MedInc","HouseAge","AveRooms","AveBedrms","Population","AveOccup","Latitude","Longitude"],
+    "data": [[8.3252,41.0,6.984,1.024,322.0,2.556,37.88,-122.23],
+             [2.5313,30.0,5.039,1.193,1565.0,2.68,35.14,-119.46]]
+  }
+}'
+```
+
+Response:
+
+```json
+{"predictions": [4.124714443495721, 0.8192676189813848]}
+```
+
+That's about $412k for the Berkeley district and $82k for the Central Valley one.
 
 ## Results
 

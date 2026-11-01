@@ -1,0 +1,22 @@
+name: train
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    env:
+      MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Train on 10% of the data
+        run: mlflow run . --env-manager local --experiment-name california-housing-regression -P sample_frac=0.1
+      - name: Predict with the champion model
+        run: mlflow run . -e predict --env-manager local --experiment-name california-housing-regression

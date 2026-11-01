@@ -18,6 +18,11 @@ import warnings
 
 os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
 
+import certifi
+
+# python.org builds on macOS ship without CA certificates, which breaks the dataset download
+os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -41,7 +46,7 @@ import mlflow.sklearn
 from mlflow import MlflowClient
 from mlflow.models import infer_signature
 
-TRACKING_URI = "sqlite:///mlflow.db"
+TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
 EXPERIMENT_NAME = "california-housing-regression"
 REGISTERED_MODEL_NAME = "CaliforniaHousingRegressor"
 SEED = 42

@@ -1,0 +1,9 @@
+name: california-housing-mlflow
+
+entry_points:
+  main:
+    parameters:
+      sample_frac: {type: float, default: 1.0}
+    command: "python train.py --sample-frac {sample_frac}"
+  predict:
+    command: "python predict.py"
