@@ -67,6 +67,14 @@ Test-set results (80/20 split, `random_state=42`), sorted by RMSE. The target is
 
 ## Screenshots
 
-<!-- Add screenshots from `mlflow ui` here, e.g.: -->
-<!-- ![Run comparison](screenshots/compare_runs.png) -->
-<!-- ![Model registry](screenshots/registry.png) -->
+**All 12 child runs, sorted by test RMSE.** The top run carries the registered `CaliforniaHousingRegressor` model.
+
+![Runs](screenshots/runs.png)
+
+**Run comparison charts:** cv_rmse, mae, r2, rmse and train_time_sec across all model configurations.
+
+![Run comparison](screenshots/compare.png)
+
+**Model Registry:** version 1 (HistGradientBoosting) with the `champion` alias.
+
+![Model registry](screenshots/registry.png)
